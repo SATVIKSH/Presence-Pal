@@ -1,0 +1,134 @@
+import 'package:flutter/material.dart';
+
+import 'package:presence_pal/models/subject_model.dart';
+
+import 'package:presence_pal/res/AppColors.dart';
+import 'package:presence_pal/views/widgets/edit_subject_alert.dart';
+import 'package:presence_pal/views/widgets/wavy_painter.dart';
+
+List<String> days = ['Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat', 'Sun'];
+
+class SubjectsListItem extends StatefulWidget {
+  const SubjectsListItem(
+      {super.key, required this.subject, required this.deleteSubject});
+  final SubjectModel subject;
+
+  final void Function(SubjectModel model) deleteSubject;
+
+  @override
+  State<SubjectsListItem> createState() => _SubjectsListItemState();
+}
+
+class _SubjectsListItemState extends State<SubjectsListItem>
+    with SingleTickerProviderStateMixin {
+  bool isSelected = false;
+  late AnimationController controller;
+  late Animation<double> animation;
+  @override
+  void initState() {
+    controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1000));
+    animation = Tween<double>(begin: -0.2, end: 0.2).animate(controller);
+    controller.forward();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: AppColors.secondaryBackground,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.subject.name,
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                              color: AppColors.primaryText,
+                            ),
+                      ),
+                      const SizedBox(
+                        height: 6,
+                      ),
+                      Text(
+                        widget.subject.code,
+                        style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                              color: AppColors.secondaryText,
+                            ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    height: 60,
+                    width: 60,
+                    clipBehavior: Clip.hardEdge,
+                    decoration: BoxDecoration(
+                        color: AppColors.primaryBackground,
+                        shape: BoxShape.circle),
+                    child: AnimatedBuilder(
+                        animation: controller,
+                        builder: (context, _) {
+                          return CustomPaint(
+                            painter: WavyIndicator(
+                                bezier: animation.value,
+                                color: AppColors.green,
+                                factor: widget.subject.total != 0
+                                    ? widget.subject.attended /
+                                        widget.subject.total
+                                    : 0),
+                            child: Center(
+                              child: Text(
+                                "${((widget.subject.total != 0 ? widget.subject.attended / widget.subject.total : 0) * 100).toStringAsFixed(2)}%",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall!
+                                    .copyWith(color: AppColors.primaryText),
+                              ),
+                            ),
+                          );
+                        }),
+                  ),
+                ],
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 80, vertical: 8),
+                child: Divider(
+                  color: AppColors.secondaryText,
+                  thickness: 1.0,
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                      onPressed: () async {
+                        await showDialog(
+                            context: context,
+                            builder: (context) {
+                              return ShowSubjectDetails(
+                                  subject: widget.subject);
+                            });
+                      },
+                      icon: const Icon(Icons.edit)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
