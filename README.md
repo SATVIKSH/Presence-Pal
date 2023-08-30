@@ -1,4 +1,4 @@
-# presence_pal
+# Presence-Pal
 
 Keep track of your subjects
 
